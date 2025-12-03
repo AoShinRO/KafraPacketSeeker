@@ -5,6 +5,8 @@ It is primarily intended for protocol research, client analysis, and debugging i
 
 The DLL works by hooking the Winsock `send` and `recv` functions, capturing packet headers and their sizes in real time.
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/AoShinRO/KafraPacketSeeker)
+
 ---
 
 ## ✨ Features
