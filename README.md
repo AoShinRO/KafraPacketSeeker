@@ -83,11 +83,13 @@ Use any DLL injector of your choice:
 - Or just rename to .asi and put into RO folder with audio on.
 
 Example via Warp:
+```
 Enable Patch: Load Custom DLL
 Edit DLLSpec.yml to:
   Name: KafraPacketSeeker.dll
   Funcs:
     - Name: "Winsockhook"
+```
     
 ---
 
