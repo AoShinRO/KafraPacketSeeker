@@ -30,10 +30,11 @@ The DLL performs:
 5. Logs the header and packet size.
 
 ### Log example:
+```
 Packet Header: 0x0072 /Size: 31
 Packet Header: 0x0089 /Size: 14
 Packet Header: 0x01AB /Size: 7
-
+```
 
 ---
 
