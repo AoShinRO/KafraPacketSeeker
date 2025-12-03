@@ -161,14 +161,10 @@ void WINAPI WinsockHook(void)
 {
 #if defined HOOK_RECEIVED || defined HOOK_BOTH
 	InstallProxyFunction(L"ws2_32.dll", "recv", MyRecv, (LPVOID*)&OrigRecv);
-#endif
-#if defined HOOK_SEND || defined HOOK_BOTH
-	InstallProxyFunction(L"ws2_32.dll", "send", MySend, (LPVOID*)&OrigSend);
-#endif
-#if defined HOOK_RECEIVED || defined HOOK_BOTH
 	ReadProcessMemory(GetCurrentProcess(), (void*)GetProcAddress(GetModuleHandle(L"WS2_32.dll"), "recv"), bHookedRecv, 6, nullptr);
 #endif
 #if defined HOOK_SEND || defined HOOK_BOTH
+	InstallProxyFunction(L"ws2_32.dll", "send", MySend, (LPVOID*)&OrigSend);
 	ReadProcessMemory(GetCurrentProcess(), (void*)GetProcAddress(GetModuleHandle(L"WS2_32.dll"), "send"), bHookedSend, 6, nullptr);
 #endif
 }
