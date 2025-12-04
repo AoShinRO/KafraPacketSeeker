@@ -92,7 +92,7 @@ bool looks_like_id(const char* data) {
 	uint32_t val;
 	memcpy(&val, data, 4);
 
-	return val != 0 && val < 0xFFFFFFFF && val > 1000;
+	return val != 0 && val < 0xFFFFFFFF && val > 150000;
 }
 
 bool looks_like_coords(const char* data) {
