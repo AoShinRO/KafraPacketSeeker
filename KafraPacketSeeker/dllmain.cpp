@@ -14,30 +14,27 @@ void generate_struct_suggestion(unsigned short header, const PacketAnalysis& ana
 	}
 
 	printf("struct PACKET_0x%04X {\n", header);
-	printf("    int16 packetType;  // 0x%04X\n", header);
+	printf("    uint16 packetType;  // 0x%04X\n", header);
 
 	int current_offset = 2;
 	if (analysis.has_length_field) {
-		printf("    int16 packetLength;\n");
+		printf("    uint16 packetLength;\n");
 		current_offset += 2;
 	}
-
+	int count = 1;
 	for (const auto& field : analysis.detected_fields) {
 		if (field.offset >= current_offset) {
 			if (field.type_hint == "string") {
-				printf("    char[%d];  // offset %d", field.size, field.offset);
+				printf("    char[%d] va_%d;  // offset %d", field.size, count, field.offset);
 			}
-			else if (field.type_hint == "id") {
-				printf("    uint32;  // offset %d", field.offset);
+			else if (field.type_hint == "uint8") {
+				printf("    uint8 va_%d;  // offset %d", count, field.offset);
 			}
-			else if (field.type_hint == "coords") {
-				printf("    uint16 x; uint16 y;  // offset %d", field.offset);
-			}
-			else if (field.type_hint == "flag") {
-				printf("    uint8;  // offset %d", field.offset);
+			else if (field.type_hint == "uint16") {
+				printf("    uint16 va_%d;  // offset %d", count, field.offset);
 			}
 			else {
-				printf("    uint32;  // offset %d [unknown]", field.offset);
+				printf("    uint32 va_%d;  // offset %d [unknown]", count, field.offset);
 			}
 
 			if (!field.is_constant) {
@@ -46,6 +43,7 @@ void generate_struct_suggestion(unsigned short header, const PacketAnalysis& ana
 			printf("\n");
 
 			current_offset = field.offset + field.size;
+			count++;
 		}
 	}
 
@@ -88,19 +86,18 @@ bool is_printable_string(const char* data, int max_len, int& out_len) {
 	return false;
 }
 
-bool looks_like_id(const char* data) {
+bool looks_like_uint8(const char* data) {
 	uint32_t val;
-	memcpy(&val, data, 4);
+	memcpy(&val, data, 1);
 
-	return val != 0 && val < 0xFFFFFFFF && val > 150000;
+	return val < 0xFF && val >= 0;
 }
 
-bool looks_like_coords(const char* data) {
-	uint16_t x, y;
-	memcpy(&x, data, 2);
-	memcpy(&y, data + 2, 2);
+bool looks_like_uint16(const char* data) {
+	uint32_t val;
+	memcpy(&val, data, 2);
 
-	return x <= 500 && y <= 500;
+	return val < 0xFFFF && val >= 0;
 }
 
 void analyze_fields(const char* buf, int len, PacketAnalysis& analysis) {
@@ -116,23 +113,15 @@ void analyze_fields(const char* buf, int len, PacketAnalysis& analysis) {
 			field.size = str_len;
 			offset += str_len;
 		}
-		else if (offset + 4 <= len && looks_like_id(buf + offset)) {
-			field.type_hint = "id";
-			field.size = 4;
-			uint32_t val;
-			memcpy(&val, buf + offset, 4);
-			field.values.push_back(val);
-			offset += 4;
-		}
-		else if (offset + 4 <= len && looks_like_coords(buf + offset)) {
-			field.type_hint = "coords";
-			field.size = 4;
-			offset += 4;
-		}
-		else if (offset + 1 <= len && (buf[offset] == 0 || buf[offset] == 1)) {
-			field.type_hint = "flag";
+		else if (offset + 1 <= len && looks_like_uint8(buf + offset)) {
+			field.type_hint = "uint8";
 			field.size = 1;
 			offset += 1;
+		}
+		else if (offset + 2 <= len && looks_like_uint16(buf + offset)) {
+			field.type_hint = "uint16";
+			field.size = 2;
+			offset += 2;
 		}
 		else {
 			field.type_hint = "unknown";
