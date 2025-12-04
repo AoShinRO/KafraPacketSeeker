@@ -22,10 +22,10 @@ void generate_struct_suggestion(unsigned short header, const PacketAnalysis& ana
 		current_offset += 2;
 	}
 	int count = 1;
-	for (const auto& field : analysis.detected_fields) {
+	for (const PacketField& field : analysis.detected_fields) {
 		if (field.offset >= current_offset) {
 			if (field.type_hint == "string") {
-				printf("    char[%d] va_%d;  // offset %d", field.size, count, field.offset);
+				printf("    char[%d] va_%d;  // offset %d", analysis.max_size - field.offset, count, field.offset);
 			}
 			else if (field.type_hint == "uint8") {
 				printf("    uint8 va_%d;  // offset %d", count, field.offset);
@@ -59,7 +59,6 @@ bool is_printable_string(const char* data, int max_len, int& out_len) {
 
 	out_len = 0;
 
-	
 	for (int i = 0; i < max_len && i < 128; i++) {  // max 128 chars  
 		if (data[i] == 0) { //null terminated
 			out_len = i + 1;
@@ -87,14 +86,14 @@ bool is_printable_string(const char* data, int max_len, int& out_len) {
 }
 
 bool looks_like_uint8(const char* data) {
-	uint32_t val;
+	uint8_t val;
 	memcpy(&val, data, 1);
 
 	return val < 0xFF && val >= 0;
 }
 
 bool looks_like_uint16(const char* data) {
-	uint32_t val;
+	uint16_t val;
 	memcpy(&val, data, 2);
 
 	return val < 0xFFFF && val >= 0;
@@ -109,19 +108,19 @@ void analyze_fields(const char* buf, int len, PacketAnalysis& analysis) {
 
 		int str_len = 0;
 		if (is_printable_string(buf + offset, len - offset, str_len)) {
-			field.type_hint = "string";
+			field.type_hint = "string";		
 			field.size = str_len;
 			offset += str_len;
-		}
-		else if (offset + 1 <= len && looks_like_uint8(buf + offset)) {
-			field.type_hint = "uint8";
-			field.size = 1;
-			offset += 1;
 		}
 		else if (offset + 2 <= len && looks_like_uint16(buf + offset)) {
 			field.type_hint = "uint16";
 			field.size = 2;
 			offset += 2;
+		}
+		else if (offset + 1 <= len && looks_like_uint8(buf + offset)) {
+			field.type_hint = "uint8";
+			field.size = 1;
+			offset += 1;
 		}
 		else {
 			field.type_hint = "unknown";
@@ -145,6 +144,7 @@ void analyze_packet(const char* buf, int len, bool is_send) {
 	memcpy(&header, buf, sizeof(header));
 
 	PacketAnalysis& analysis = packet_db[header];
+
 	analysis.sample_count++;
 	analysis.observed_sizes.push_back(len);
 	analysis.size_frequency[len]++;
