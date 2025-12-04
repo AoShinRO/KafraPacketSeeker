@@ -5,6 +5,8 @@ It is primarily intended for protocol research, client analysis, and debugging i
 
 The DLL works by hooking the Winsock `send` and `recv` functions, capturing packet headers and their sizes in real time.
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/AoShinRO/KafraPacketSeeker)
+
 ---
 
 ## ✨ Features
@@ -30,10 +32,11 @@ The DLL performs:
 5. Logs the header and packet size.
 
 ### Log example:
+```
 Packet Header: 0x0072 /Size: 31
 Packet Header: 0x0089 /Size: 14
 Packet Header: 0x01AB /Size: 7
-
+```
 
 ---
 
@@ -82,11 +85,13 @@ Use any DLL injector of your choice:
 - Or just rename to .asi and put into RO folder with audio on.
 
 Example via Warp:
+```
 Enable Patch: Load Custom DLL
 Edit DLLSpec.yml to:
   Name: KafraPacketSeeker.dll
   Funcs:
     - Name: "Winsockhook"
+```
     
 ---
 
